@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import AidImage from '../assets/images/aid.png';
 
-export default function HealthyMeLanding() {
+export default function   HealthyMeLanding() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const { scrollY } = useScroll();
+  const navbarY = useTransform(scrollY, [0, 100], [0, 20]);
+  const navbarScale = useTransform(scrollY, [0, 100], [1, 0.95]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const categories = ['Bayi', 'Anak-anak', 'Remaja', 'Dewasa', 'Lansia'];
   
@@ -61,112 +74,131 @@ export default function HealthyMeLanding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-red-50 overflow-hidden">
-      {/* Navigation */}
-      <motion.nav 
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-20 flex items-center justify-between px-8 py-6" 
-        style={{fontFamily: 'Satoshi, sans-serif'}}
+      {/* Floating Navigation */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 z-50 px-8 pt-6"
+        style={{ y: navbarY }}
       >
-        <motion.div 
-          className="flex items-center gap-2"
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 400 }}
+        <motion.nav
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={{
+            scale: navbarScale,
+            fontFamily: 'Satoshi, sans-serif'
+          }}
+          className={`
+            max-w-7xl mx-auto
+            flex items-center justify-between
+            px-8 py-4
+            rounded-full
+            backdrop-blur-md
+            transition-all duration-300
+            ${isScrolled 
+              ? 'bg-white/90 border border-gray-200/50 shadow-xl' 
+              : 'bg-white/70 border border-white/30'
+            }
+          `}
         >
-          <h1
-            className="text-3xl font-bold text-center"
-            style={{ color: '#800020', fontFamily: 'Chetta, sans-serif' }}
+          <motion.div 
+            className="flex items-center gap-2"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400 }}
           >
-            HealthyMe
-          </h1>
-          <motion.div
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-          >
-            <img
-              src={AidImage}
-              alt="aid"
-              className="w-10 h-10 rounded-full object-cover -mt-2"
-            />
+            <h1
+              className="text-3xl font-bold text-center"
+              style={{ color: '#800020', fontFamily: 'Chetta, sans-serif' }}
+            >
+              HealthyMe
+            </h1>
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            >
+              <img
+                src={AidImage}
+                alt="aid"
+                className="w-10 h-10 rounded-full object-cover -mt-2"
+              />
+            </motion.div>
           </motion.div>
-        </motion.div>
 
-        <div className="flex items-center gap-8">
-          <motion.a
-            href="#"
-            className="text-gray-700 hover:text-gray-900 font-medium"
-            whileHover={{ scale: 1.1, color: '#800020' }}
-            transition={{ type: "spring", stiffness: 400 }}
-          >
-            Home
-          </motion.a>
-          <motion.a
-            href="#"
-            className="text-gray-700 hover:text-gray-900 font-medium"
-            whileHover={{ scale: 1.1, color: '#800020' }}
-            transition={{ type: "spring", stiffness: 400 }}
-          >
-            About Us
-          </motion.a>
-          
-          {/* Kategori Dropdown */}
-          <div className="relative">
+          <div className="flex items-center gap-8">
+            <motion.a
+              href="#"
+              className="text-gray-700 hover:text-gray-900 font-medium"
+              whileHover={{ scale: 1.1, color: '#800020' }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
+              Home
+            </motion.a>
+            <motion.a
+              href="#"
+              className="text-gray-700 hover:text-gray-900 font-medium"
+              whileHover={{ scale: 1.1, color: '#800020' }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
+              About Us
+            </motion.a>
+            
+            {/* Kategori Dropdown */}
+            <div className="relative">
+              <motion.button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Kategori
+                <motion.div
+                  animate={{ rotate: dropdownOpen ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </motion.div>
+              </motion.button>
+              
+              <AnimatePresence>
+                {dropdownOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[150px] z-30"
+                  >
+                    {categories.map((category, index) => (
+                      <motion.button
+                        key={category}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        onClick={() => handleCategorySelect(category)}
+                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-pink-50 hover:text-gray-900 transition-colors"
+                        whileHover={{ x: 5 }}
+                      >
+                        {category}
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <motion.button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium"
-              whileHover={{ scale: 1.1 }}
+              className="px-6 py-2 text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: '#800020' }}
+              whileHover={{ scale: 1.05, boxShadow: '0 10px 25px rgba(128, 0, 32, 0.3)' }}
               whileTap={{ scale: 0.95 }}
             >
-              Kategori
-              <motion.div
-                animate={{ rotate: dropdownOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronDown className="w-4 h-4" />
-              </motion.div>
+              Log In
             </motion.button>
-            
-            <AnimatePresence>
-              {dropdownOpen && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[150px] z-30"
-                >
-                  {categories.map((category, index) => (
-                    <motion.button
-                      key={category}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      onClick={() => handleCategorySelect(category)}
-                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-pink-50 hover:text-gray-900 transition-colors"
-                      whileHover={{ x: 5 }}
-                    >
-                      {category}
-                    </motion.button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
-
-          <motion.button
-            className="px-6 py-2 text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
-            style={{ backgroundColor: '#800020' }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Log In
-          </motion.button>
-        </div>
-      </motion.nav>
+        </motion.nav>
+      </motion.div>
 
       {/* Hero Section */}
-      <div className="relative px-8 py-12 max-w-7xl mx-auto">
+      <div className="relative px-8 py-12 pt-32 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="relative z-10 text-center md:text-left">
@@ -495,7 +527,134 @@ export default function HealthyMeLanding() {
           </motion.div>
         </div>
       </div>
+ {/* Team Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="relative px-8 py-20 max-w-7xl mx-auto"
+      >
+        <div className="text-center mb-16">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-bold mb-4"
+            style={{ fontFamily: 'Chetta, sans-serif', color: '#800020' }}
+          >
+            Meet Our Expert Team
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: true }}
+            className="text-xl text-gray-600"
+            style={{ fontFamily: 'Satoshi, sans-serif' }}
+          >
+            Partnered with <span style={{ color: '#800020', fontStyle: 'italic' }}>top nutrition experts</span>
+          </motion.p>
+        </div>
 
+        {/* Team Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            {
+              name: "Dr. Sarah Johnson",
+              role: "Clinical Nutritionist",
+              image: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop"
+            },
+            {
+              name: "Dr. Michael Chen",
+              role: "Pediatric Specialist",
+              image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop"
+            },
+            {
+              name: "Dr. Emily Williams",
+              role: "Dietitian Expert",
+              image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop"
+            },
+            {
+              name: "Dr. James Rodriguez",
+              role: "Health Consultant",
+              image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop"
+            }
+          ].map((member, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10 }}
+              className="relative group"
+            >
+              <div className="relative overflow-hidden rounded-2xl bg-white shadow-lg">
+                {/* Glow Effect on Hover */}
+                <motion.div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    background: 'radial-gradient(circle at center, rgba(128, 0, 32, 0.2), transparent 70%)',
+                    filter: 'blur(20px)',
+                  }}
+                />
+                
+                {/* Image */}
+                <div className="relative h-80 overflow-hidden">
+                  <motion.img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.4 }}
+                  />
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                </div>
+
+                {/* Info Card */}
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  transition={{ delay: index * 0.1 + 0.2 }}
+                  viewport={{ once: true }}
+                  className="absolute bottom-0 left-0 right-0 p-6 text-white"
+                >
+                  <h3
+                    className="text-xl font-bold mb-1"
+                    style={{ fontFamily: 'Chetta, sans-serif' }}
+                  >
+                    {member.name}
+                  </h3>
+                  <p
+                    className="text-sm text-pink-200"
+                    style={{ fontFamily: 'Satoshi, sans-serif' }}
+                  >
+                    {member.role}
+                  </p>
+
+                  {/* Decorative Line */}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: '60px' }}
+                    transition={{ delay: index * 0.1 + 0.4, duration: 0.6 }}
+                    viewport={{ once: true }}
+                    className="h-1 mt-3 rounded-full"
+                    style={{ backgroundColor: '#800020' }}
+                  />
+                </motion.div>
+
+                {/* Border Effect on Hover */}
+                <motion.div
+                  className="absolute inset-0 border-4 border-transparent rounded-2xl group-hover:border-[#800020]/30 transition-all duration-300"
+                />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
       {/* Doctor's Quote Section */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
@@ -565,7 +724,7 @@ export default function HealthyMeLanding() {
       <div className="relative mt-20">
         {/* Wave SVG */}
         <div className="relative">
-         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#800020" fill-opacity="1" d="M0,0L40,26.7C80,53,160,107,240,128C320,149,400,139,480,165.3C560,192,640,256,720,245.3C800,235,880,149,960,133.3C1040,117,1120,171,1200,186.7C1280,203,1360,181,1400,170.7L1440,160L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z"></path></svg>
+         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#800020" fillOpacity="1" d="M0,0L40,26.7C80,53,160,107,240,128C320,149,400,139,480,165.3C560,192,640,256,720,245.3C800,235,880,149,960,133.3C1040,117,1120,171,1200,186.7C1280,203,1360,181,1400,170.7L1440,160L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z"></path></svg>
         </div>
 
         {/* Footer Content */}
@@ -612,13 +771,13 @@ export default function HealthyMeLanding() {
                   <li>
                     <a href="#" className="hover:text-pink-200 transition-colors">alodokter.com</a>
                   </li>
-                    <li>
+                  <li>
                     <a href="#" className="hover:text-pink-200 transition-colors">unsplash</a>
                   </li>
-                    <li>
+                  <li>
                     <a href="#" className="hover:text-pink-200 transition-colors">vecteezy</a>
                   </li>
-                    <li>
+                  <li>
                     <a href="#" className="hover:text-pink-200 transition-colors">unicef</a>
                   </li>
                 </ul>
@@ -644,8 +803,7 @@ export default function HealthyMeLanding() {
                 </ul>
               </motion.div>
 
-              {/* Newsletter */}
-              <motion.div
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
@@ -654,18 +812,20 @@ export default function HealthyMeLanding() {
                 <h3 className="text-xl font-bold mb-4" style={{ fontFamily: 'Chetta, sans-serif' }}>
                   Newsletter
                 </h3>
+                <p className="mb-4 text-pink-100" style={{ fontFamily: 'Satoshi, sans-serif' }}>
+                  Subscribe to get health tips and updates
+                </p>
                 <div className="flex gap-2">
                   <input
                     type="email"
-                    placeholder="Your email..."
-                    className="flex-1 px-4 py-2 rounded-full text-white focus:outline-none focus:ring-2 focus:ring-pink-300"
+                    placeholder="Your email"
+                    className="flex-1 px-4 py-2 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-300"
                     style={{ fontFamily: 'Satoshi, sans-serif' }}
                   />
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-6 py-2 bg-white text-[#800020] rounded-full font-semibold hover:bg-pink-100 transition-colors"
-                    style={{ fontFamily: 'Satoshi, sans-serif' }}
+                    className="px-6 py-2 bg-white text-[#800020] rounded-full font-semibold hover:bg-pink-50 transition-colors"
                   >
                     Subscribe
                   </motion.button>
@@ -679,10 +839,10 @@ export default function HealthyMeLanding() {
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               viewport={{ once: true }}
-              className="mt-12 pt-8 border-t border-white/50` text-center text-gray-300 text-left  "
+              className="mt-12 pt-8 border-t border-pink-800 text-center text-pink-100"
               style={{ fontFamily: 'Satoshi, sans-serif' }}
             >
-              <p>Dibuat Oleh Tim <span className='text-white' style={{fontFamily:'Chetta, sans-serif'}}>HealthySelf</span></p>
+              <p>© 2024 HealthyMe. All rights reserved.</p>
             </motion.div>
           </div>
         </div>
